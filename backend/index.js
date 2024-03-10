@@ -53,146 +53,182 @@ const Product = mongoose.model("Product", {
     required: true,
   },
   image: {
-    type:String,
-    required:true,
+    type: String,
+    required: true,
   },
   category: {
     type: String,
     required: true,
   },
-  new_price:{
-    type:Number,
-    required:true,
+  new_price: {
+    type: Number,
+    required: true,
   },
-  old_price:{
-    type:Number,
-    required:true,
+  old_price: {
+    type: Number,
+    required: true,
   },
-  date:{
-    type:Date,
-    default:Date.now,
+  date: {
+    type: Date,
+    default: Date.now,
   },
-  avilable:{
-    type:Boolean,
-    default:true,
+  avilable: {
+    type: Boolean,
+    default: true,
   },
 });
 
-app.post('/addproduct', async (req,res) =>{
-    let products = await Product.find({});
-    let id;
-    if (products.length) {
-        let last_product_array = products.slice(-1);
-        let last_product = last_product_array[0];
-        id = last_product.id+1;
-    }
-    else{
-        id=1;
-    }
-    const product = new Product({
-        id:id,
-        name:req.body.name,
-        image:req.body.image,
-        category:req.body.category,
-        new_price:req.body.new_price,
-        old_price:req.body.old_price,
-    })
-    console.log(product);
-    await product.save();
-    console.log("Saved");
-    res.json({
-        success:true,
-        name:req.body.name,
-    })
-})
+app.post("/addproduct", async (req, res) => {
+  let products = await Product.find({});
+  let id;
+  if (products.length) {
+    let last_product_array = products.slice(-1);
+    let last_product = last_product_array[0];
+    id = last_product.id + 1;
+  } else {
+    id = 1;
+  }
+  const product = new Product({
+    id: id,
+    name: req.body.name,
+    image: req.body.image,
+    category: req.body.category,
+    new_price: req.body.new_price,
+    old_price: req.body.old_price,
+  });
+  console.log(product);
+  await product.save();
+  console.log("Saved");
+  res.json({
+    success: true,
+    name: req.body.name,
+  });
+});
 
 //CREATING API FOR DELETING PRODUCTS
 
-app.post('/removeproduct',async (req,res)=>{
-    await Product.findOneAndDelete({id:req.body.id});
-    console.log("Removed");
-    res.json({
-        success:true,
-        name:req.body.name
-    })
-})
+app.post("/removeproduct", async (req, res) => {
+  await Product.findOneAndDelete({ id: req.body.id });
+  console.log("Removed");
+  res.json({
+    success: true,
+    name: req.body.name,
+  });
+});
 
 //CREATING API FOR GETTING ALL THE PRODUCTS
-app.get('/allproducts', async(req,res)=>{
-    let products = await Product.find({});
-    console.log("All Products Fetched");
-    res.send(products);
-})
+app.get("/allproducts", async (req, res) => {
+  let products = await Product.find({});
+  console.log("All Products Fetched");
+  res.send(products);
+});
 
 //SCHEMA CREATING FOR USER MODEL
-const Users = mongoose.model('Users',{
-  name:{
-    type:String,
+const Users = mongoose.model("Users", {
+  name: {
+    type: String,
   },
-  email:{
-    type:String,
-    unique:true,
+  email: {
+    type: String,
+    unique: true,
   },
-  password:{
-    type:String,
+  password: {
+    type: String,
   },
-  cartData:{
-    type:Object,
+  cartData: {
+    type: Object,
   },
-  date:{
-    type:Date,
-    default:Date.now,
+  date: {
+    type: Date,
+    default: Date.now,
   },
-})
+});
 
 //CREATING ENDPOINT FOR REGISTERING THE USER
-app.post('/signup', async(req,res)=>{
-  let check = await Users.findOne({email:req.body.email});
-  if (check){
-    return res.status(400).json({success:false,errors:"existing user found with same email"})
+app.post("/signup", async (req, res) => {
+  let check = await Users.findOne({ email: req.body.email });
+  if (check) {
+    return res
+      .status(400)
+      .json({ success: false, errors: "existing user found with same email" });
   }
   let cart = {};
   for (let i = 0; i < 300; i++) {
-    cart[i]=0;    
+    cart[i] = 0;
   }
   const user = new Users({
-    name:req.body.username,
-    email:req.body.email,
-    password:req.body.password,
-    cartData:cart,
-  })
+    name: req.body.username,
+    email: req.body.email,
+    password: req.body.password,
+    cartData: cart,
+  });
   await user.save();
   const data = {
-    user:{
-      id:user.id
-    }
-  }
-  const token = jwt.sign(data,'secret_ecom');
-  res.json({success:true,token})
-})
+    user: {
+      id: user.id,
+    },
+  };
+  const token = jwt.sign(data, "secret_ecom");
+  res.json({ success: true, token });
+});
 
 //CREATING ENDPOINTS FOR THEHH USER LOGIN
-app.post('/login',async(req,res)=>{
-  let user = await Users.findOne({email:req.body.email});
-  if (user){
+app.post("/login", async (req, res) => {
+  let user = await Users.findOne({ email: req.body.email });
+  if (user) {
     const passCompare = req.body.password === user.password;
-    if(passCompare){
+    if (passCompare) {
       const data = {
-        user:{
-          id:user.id
-        }
-      }
-      const token = jwt.sign(data,'secret_ecom');
-      res.json({success:true,token});
+        user: {
+          id: user.id,
+        },
+      };
+      const token = jwt.sign(data, "secret_ecom");
+      res.json({ success: true, token });
+    } else {
+      res.json({ success: false, error: "Wrong Password" });
     }
-    else{
-      res.json({success:false,error:"Wrong Password"});
+  } else {
+    res.json({ success: false, errors: "Wrong Email Id" });
+  }
+});
+
+//CREATING ENDPOINT FOR NEWCOLLECTIONS DATA
+app.get("/newcollections", async (req, res) => {
+  let products = await Product.find({});
+  let newcollection = products.slice(1).slice(-8);
+  console.log("NewCollection Fetched");
+  res.send(newcollection);
+});
+
+//CREATING ENDPOINT FOR POPULAR IN WOMEN SECTION
+app.get("/popularinwomen", async (req, res) => {
+  let products = await Product.find({ category: "women" });
+  let popular_in_women = products.slice(0, 4);
+  console.log("Poular in women fetched");
+  res.send(popular_in_women);
+});
+
+//CREATING MIDDLEWARE TO FETCH USER
+const fetchUser = async (req, res, next) => {
+  const token = req.header("auth-token");
+  if (!token) {
+    res.status(401).send({ errors: "Please authenticate using valid token" });
+  } else {
+    try{
+      const data = jwt.verify(token, 'secret_ecom');
+      req.user = data.user;
+      next();
+    }catch(error){
+      res.status(401).send({errors:"please authenticate using valid token"})
     }
   }
-  else{
-    res.json({success:false,errors:"Wrong Email Id"})
-  }
-})
+};
+
+//CREATING ENDPOINT FOR ADDING PRODUCTS IN CARDDATA
+app.post("/addtocart",fetchUser, async (req, res) => {
+  console.log(req.body,req.user);
+});
 
 app.listen(port, (error) => {
   if (!error) {

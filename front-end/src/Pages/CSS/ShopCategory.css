@@ -72,6 +72,7 @@
 @media(max-width:800px){
   .shopcategory-banner{
     width: 95%;
+    padding-top: 60px;
   }
   .shopcategory-products{
     width: 95%;
